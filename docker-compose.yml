@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: rag-qdrant-db
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./vectorstore/qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  # FastAPI Backend (Serving HTML UI and REST APIs)
+  fastapi-backend:
+    build: .
+    container_name: rag-fastapi-app
+    command: python main.py
+    ports:
+      - "8085:8085"
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    volumes:
+      - ./Data:/app/Data
+      - ./vectorstore:/app/vectorstore
+    depends_on:
+      - qdrant
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Learning & Dataset Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-base: #09090b;
+            --bg-surface: #18181b;
+            --bg-element: #27272a;
+            --border-color: #3f3f46;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-green: #10b981;
+            --accent-green-alpha: rgba(16, 185, 129, 0.15);
+            --accent-indigo: #6366f1;
+            --accent-indigo-alpha: rgba(99, 102, 241, 0.15);
+            --accent-purple: #a855f7;
+            --accent-purple-alpha: rgba(168, 85, 247, 0.15);
+            --accent-amber: #f59e0b;
+            --accent-amber-alpha: rgba(245, 158, 11, 0.15);
+            --accent-red: #ef4444;
+            --accent-red-alpha: rgba(239, 68, 68, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        .dashboard-body-container {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* KPI Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--bg-element);
+            border-radius: 12px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--border-color);
+        }
+
+        .metric-card.queries::before { background: var(--accent-indigo); }
+        .metric-card.positive::before { background: var(--accent-green); }
+        .metric-card.negative::before { background: var(--accent-red); }
+        .metric-card.size::before { background: var(--accent-purple); }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .metric-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .queries .metric-icon { background: var(--accent-indigo-alpha); color: var(--accent-indigo); }
+        .positive .metric-icon { background: var(--accent-green-alpha); color: var(--accent-green); }
+        .negative .metric-icon { background: var(--accent-red-alpha); color: var(--accent-red); }
+        .size .metric-icon { background: var(--accent-purple-alpha); color: var(--accent-purple); }
+
+        .metric-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 10px;
+            color: var(--text-primary);
+        }
+
+        /* Filter Controls Bar */
+        .filter-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--bg-element);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .filter-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-control {
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-indigo);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--bg-element);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.92;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-success:hover {
+            opacity: 0.92;
+        }
+
+        /* Data Table Container */
+        .table-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--bg-element);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--bg-element);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .table-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--bg-base);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--bg-element);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--bg-element);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .badge-positive { background: var(--accent-green-alpha); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-negative { background: var(--accent-red-alpha); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-unrated { background: var(--accent-amber-alpha); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .query-cell {
+            max-width: 320px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        /* Modal Overlay - Hidden by default */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
+
+        .modal-overlay.active {
+            display: flex !important;
+        }
+
+        .modal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 780px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--bg-element);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        pre {
+            background: var(--bg-base);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--bg-element);
+            color: #a7f3d0;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @media (max-width: 900px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .filter-card { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="dashboard-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--bg-element, #27272a); padding: 18px 24px;">
+        <div class="header-title-box" style="display: flex; align-items: center; gap: 12px;">
+            <i data-lucide="brain-circuit" style="color: var(--accent-indigo, #6366f1); width: 28px; height: 28px;"></i>
+            <div>
+                <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600;">RAG Learning & Retrieval Feedback Manager</h1>
+                <div class="header-subtitle" style="font-size: 13px; color: var(--text-secondary, #a1a1aa); margin-top: 2px;">Real-time interaction dataset capture for embedding fine-tuning, reranker optimization, & quality benchmarking</div>
+            </div>
+        </div>
+        <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+            <button class="btn" id="refresh-btn" onclick="fetchDatasetData()">
+                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
+            </button>
+            <a href="/" class="btn btn-primary">
+                <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Workspace
+            </a>
+        </div>
+    </header>
+
+    <div class="dashboard-body-container">
+
+        <!-- KPI Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card queries">
+                <div class="metric-header">
+                    <span>Total Interactions</span>
+                    <div class="metric-icon"><i data-lucide="message-square"></i></div>
+                </div>
+                <div class="metric-value" id="stat-total">0</div>
+            </div>
+
+            <div class="metric-card positive">
+                <div class="metric-header">
+                    <span>Positive Feedback</span>
+                    <div class="metric-icon"><i data-lucide="thumbs-up"></i></div>
+                </div>
+                <div class="metric-value" id="stat-positive">0</div>
+            </div>
+
+            <div class="metric-card negative">
+                <div class="metric-header">
+                    <span>Negative Feedback</span>
+                    <div class="metric-icon"><i data-lucide="thumbs-down"></i></div>
+                </div>
+                <div class="metric-value" id="stat-negative">0</div>
+            </div>
+
+            <div class="metric-card size">
+                <div class="metric-header">
+                    <span>Dataset Disk Size</span>
+                    <div class="metric-icon"><i data-lucide="hard-drive"></i></div>
+                </div>
+                <div class="metric-value" id="stat-size">0 Bytes</div>
+            </div>
+        </div>
+
+        <!-- Filter Controls Card -->
+        <div class="filter-card">
+            <div class="filter-inputs">
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" id="filter-start-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" id="filter-end-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Feedback Type</label>
+                    <select id="filter-feedback" class="form-control">
+                        <option value="all">All Feedback</option>
+                        <option value="positive">Positive Only</option>
+                        <option value="negative">Negative Only</option>
+                        <option value="unrated">Unrated</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Conversation ID</label>
+                    <input type="text" id="filter-conv-id" class="form-control" placeholder="Search chat ID...">
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button class="btn" onclick="applyFilters()" style="margin-top: 18px;">
+                        <i data-lucide="filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="exportFullDataset()">
+                    <i data-lucide="download"></i> Export All Dataset (.json)
+                </button>
+                <button class="btn btn-success" onclick="exportFilteredDataset()">
+                    <i data-lucide="file-json"></i> Download Filtered (.json)
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Table Card -->
+        <div class="table-card">
+            <div class="table-header">
+                <div class="table-title">Captured RAG Interaction Records</div>
+                <div id="table-count" style="font-size: 13px; color: var(--text-secondary);">Showing 0 records</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Query</th>
+                        <th>Conversation ID</th>
+                        <th>Retrieved Sources</th>
+                        <th>Score</th>
+                        <th>Feedback</th>
+                        <th>JSON Action</th>
+                    </tr>
+                </thead>
+                <tbody id="records-table-body">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            Loading captured interaction dataset...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- JSON Viewer Modal -->
+    <div class="modal-overlay" id="json-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="file-json" style="color: var(--accent-indigo);"></i>
+                    <span>Interaction JSON Detail</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn" onclick="copyModalJson()" style="padding: 4px 10px; font-size: 12px;">
+                        <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy JSON
+                    </button>
+                    <button class="btn" onclick="closeModal()" style="padding: 4px 8px; font-size: 14px;">✕</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <pre id="modal-json-content"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cachedRecords = [];
+
+        async function fetchDatasetData() {
+            try {
+                // Fetch stats
+                const statsResp = await fetch('/api/dataset/stats');
+                if (statsResp.ok) {
+                    const stats = await statsResp.json();
+                    document.getElementById('stat-total').textContent = stats.total_queries || 0;
+                    document.getElementById('stat-positive').textContent = stats.positive_feedback_count || 0;
+                    document.getElementById('stat-negative').textContent = stats.negative_feedback_count || 0;
+                    document.getElementById('stat-size').textContent = stats.dataset_size_formatted || '0 Bytes';
+                }
+
+                // Fetch records
+                await applyFilters();
+                if (window.lucide) window.lucide.createIcons();
+            } catch (err) {
+                console.error("Error fetching dataset data:", err);
+            }
+        }
+
+        async function applyFilters() {
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const feedbackType = document.getElementById('filter-feedback').value;
+            const convId = document.getElementById('filter-conv-id').value;
+
+            const params = new URLSearchParams();
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (feedbackType) params.append('feedback_type', feedbackType);
+            if (convId) params.append('conversation_id', convId);
+
+            try {
+                const resp = await fetch(`/api/dataset/queries?${params.toString()}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    cachedRecords = data.records || [];
+                    renderRecordsTable(cachedRecords);
+                }
+            } catch (err) {
+                console.error("Error applying filters:", err);
+            }
+        }
+
+        function renderRecordsTable(records) {
+            const tbody = document.getElementById('records-table-body');
+            const countLabel = document.getElementById('table-count');
+
+            countLabel.textContent = `Showing ${records.length} record${records.length !== 1 ? 's' : ''}`;
+
+            if (records.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            No interaction dataset records found matching current filters.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = records.map((rec, index) => {
+                const dateStr = rec.timestamp ? new Date(rec.timestamp).toLocaleString() : '--';
+                const queryText = escapeHTML(rec.query || '');
+                const convId = escapeHTML(rec.conversation_id || '--');
+                const sources = (rec.source_documents || []).join(', ') || 'Direct Attachment / Knowledge Base';
+                const score = typeof rec.retrieval_score === 'number' ? rec.retrieval_score.toFixed(2) : '--';
+                const fb = (rec.feedback || 'unrated').toLowerCase();
+
+                let badgeClass = 'badge-unrated';
+                let fbIcon = 'minus-circle';
+                if (fb === 'positive') { badgeClass = 'badge-positive'; fbIcon = 'thumbs-up'; }
+                else if (fb === 'negative') { badgeClass = 'badge-negative'; fbIcon = 'thumbs-down'; }
+
+                return `
+                    <tr id="row-${rec.interaction_id || index}">
+                        <td style="white-space: nowrap; font-size: 12px; color: var(--text-secondary);">${dateStr}</td>
+                        <td class="query-cell" title="${queryText}">${queryText}</td>
+                        <td><span class="code-snippet">${convId}</span></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(sources)}">${escapeHTML(sources)}</td>
+                        <td style="font-weight: 600; color: var(--accent-indigo);">${score}</td>
+                        <td>
+                            <span class="badge ${badgeClass}" id="fb-badge-${index}">
+                                <i data-lucide="${fbIcon}" style="width: 12px; height: 12px;"></i>
+                                ${fb}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <button class="btn" onclick="updateFeedback('${rec.interaction_id}', 'positive', ${index})" title="Mark Positive" style="padding: 3px 8px; font-size: 12px; background: rgba(16,185,129,0.12); border-color: #10b981; color:#10b981;">
+                                    <i data-lucide="thumbs-up" style="width: 12px; height: 12px;"></i>
+                                </button>
+                                <button class="btn" onclick="updateFeedback('${rec.interaction_id}', 'negative', ${index})" title="Mark Negative" style="padding: 3px 8px; font-size: 12px; background: rgba(239,68,68,0.12); border-color: #ef4444; color:#ef4444;">
+                                    <i data-lucide="thumbs-down" style="width: 12px; height: 12px;"></i>
+                                </button>
+                                <button class="btn" onclick="openJsonModal(${index})" style="padding: 3px 8px; font-size: 12px;">
+                                    <i data-lucide="eye" style="width: 12px; height: 12px;"></i> View
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        async function updateFeedback(interactionId, feedback, rowIndex) {
+            if (!interactionId) {
+                alert('Cannot update: interaction ID is missing for this record.');
+                return;
+            }
+            try {
+                const resp = await fetch('/api/dataset/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ interaction_id: interactionId, feedback: feedback })
+                });
+                if (resp.ok) {
+                    // Update badge in-place without full reload
+                    const badge = document.getElementById(`fb-badge-${rowIndex}`);
+                    if (badge) {
+                        const icon = feedback === 'positive' ? 'thumbs-up' : 'thumbs-down';
+                        const cls = feedback === 'positive' ? 'badge-positive' : 'badge-negative';
+                        badge.className = `badge ${cls}`;
+                        badge.innerHTML = `<i data-lucide="${icon}" style="width:12px;height:12px;"></i> ${feedback}`;
+                        if (window.lucide) window.lucide.createIcons();
+                    }
+                    // Update cached record
+                    if (cachedRecords[rowIndex]) cachedRecords[rowIndex].feedback = feedback;
+                    // Refresh stats counters
+                    const statsResp = await fetch('/api/dataset/stats');
+                    if (statsResp.ok) {
+                        const stats = await statsResp.json();
+                        document.getElementById('stat-positive').textContent = stats.positive_feedback_count || 0;
+                        document.getElementById('stat-negative').textContent = stats.negative_feedback_count || 0;
+                    }
+                } else {
+                    const err = await resp.json().catch(() => ({}));
+                    alert('Failed to update feedback: ' + (err.detail || resp.status));
+                }
+            } catch (e) {
+                console.error('Feedback update error:', e);
+                alert('Network error updating feedback.');
+            }
+        }
+
+        function openJsonModal(index) {
+            const record = cachedRecords[index];
+            if (!record) return;
+
+            document.getElementById('modal-json-content').textContent = JSON.stringify(record, null, 2);
+            const modal = document.getElementById('json-modal');
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('json-modal');
+            modal.classList.remove('active');
+        }
+
+        function copyModalJson() {
+            const content = document.getElementById('modal-json-content').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert("JSON copied to clipboard!");
+            });
+        }
+
+        function exportFullDataset() {
+            window.location.href = '/api/dataset/export';
+        }
+
+        function exportFilteredDataset() {
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const feedbackType = document.getElementById('filter-feedback').value;
+            const convId = document.getElementById('filter-conv-id').value;
+
+            const params = new URLSearchParams();
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (feedbackType) params.append('feedback_type', feedbackType);
+            if (convId) params.append('conversation_id', convId);
+
+            window.location.href = `/api/dataset/export?${params.toString()}`;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // Close modal when clicking backdrop
+        document.getElementById('json-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'json-modal') closeModal();
+        });
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchDatasetData();
+        });
+    </script>
+</body>
+</html>

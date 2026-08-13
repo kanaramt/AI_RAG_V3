@@ -1,0 +1,52 @@
+fastapi
+uvicorn[standard]
+
+# LangChain & Graph Orchestration
+langgraph
+langchain
+langchain-core
+langchain-community
+
+# Data Validation & Settings
+pydantic
+pydantic-settings
+
+# HTTP, Environment & Utilities
+python-dotenv
+python-multipart
+httpx
+orjson
+
+# Document Processing & Data Loaders
+pypdf
+python-docx
+openpyxl
+pandas
+
+# OCR & Vision Processing
+pillow
+pytesseract
+easyocr
+opencv-python-headless
+
+# Vector Store & Embeddings
+qdrant-client
+faiss-cpu
+sentence-transformers
+
+# Web Search & Scraping
+beautifulsoup4
+requests
+
+# LLM Providers
+openai
+anthropic
+google-genai
+google-generativeai
+ollama
+rank_bm25
+
+# Structured Logging & Testing
+structlog
+pytest
+pytest-asyncio

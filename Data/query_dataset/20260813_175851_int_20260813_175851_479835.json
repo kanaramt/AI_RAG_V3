@@ -1,0 +1,34 @@
+{
+  "interaction_id": "int_20260813_175851_479835",
+  "query": "How does FastAPI's automatic interactive documentation feature work, and what are its limitations?",
+  "timestamp": "2026-08-13T17:58:51.479835",
+  "conversation_id": "chat-1786553522687-37f9ac",
+  "retrieved_chunk_ids": [
+    "f34ea78c-182d-481b-abbc-bd511123a929",
+    "424e14a3-26d0-4dc8-877e-77b79c5a7b75",
+    "53ad1fad-dbcc-4e9c-b311-8613ef37e480"
+  ],
+  "retrieved_chunk_text": [
+    "url: https://fastapi.tiangolo.com\ntitle: FastAPI - FastAPI\ncontent: ## FastAPI¶\nFastAPI framework, high performance, easy to learn, fast to code, read...",
+    "Title: FastAPI - FastAPI\nURL: https://fastapi.tiangolo.com\nContent:\n## FastAPI¶\nFastAPI framework, high performance, easy to learn, fast to code, read...",
+    "page_id: 9e515bc38fa398562d308035fba15b0f\nurl: https://fastapi.tiangolo.com\ntitle: FastAPI - FastAPI\ndomain: fastapi.tiangolo.com\nsource_type: website..."
+  ],
+  "source_documents": [
+    "9e515bc38fa398562d308035fba15b0f.json",
+    "FastAPI_Documentation.json"
+  ],
+  "llm_response": "FastAPI is a modern, fast (high-performance), web framework for building APIs with Python based on standard Python type hints.\n\nKey features:\n* Fast: Very high performance, on par with NodeJS and Go\n* Fast to code: Increase development speed by 200-300%\n* Fewer bugs: Reduce human-induced errors by about 40%\n* Intuitive: Great editor support and completion\n* Easy to use and learn\n* Robust: Get production-ready code with automatic interactive documentation\n\n**Automatic Interactive Documentation Feature**\n\nFastAPI's automatic interactive documentation feature generates API documentation for your application, making it easy to understand and interact with. This feature is Standards-based, compatible with OpenAPI and JSON Schema.\n\nNo specific limitations mentioned in the provided context.",
+  "retrieval_score": 0.9911,
+  "feedback": "unrated",
+  "metadata": {
+    "model": "llama3",
+    "metrics": {
+      "correctness": 58,
+      "faithfulness": 86,
+      "groundedness": 75,
+      "confidence": 73,
+      "time_taken_s": 987.64,
+      "token_cost": "$0.0000 (Local)"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "interaction_id": "int_20260812_194054_135462",
+  "query": "What is RAG?",
+  "timestamp": "2026-08-12T19:40:54.135462",
+  "conversation_id": "conv_abc123",
+  "retrieved_chunk_ids": [
+    "chunk_1",
+    "chunk_5"
+  ],
+  "retrieved_chunk_text": [
+    "RAG integrates semantic vector search with LLMs for accurate grounding."
+  ],
+  "source_documents": [
+    "rag_guide.pdf"
+  ],
+  "llm_response": "RAG (Retrieval-Augmented Generation) combines document vector retrieval with LLM generation.",
+  "retrieval_score": 0.92,
+  "feedback": "positive",
+  "metadata": {}
+}

@@ -1,0 +1,82 @@
+import os
+import sys
+# Force PyTorch and OpenMP to run on a single thread to prevent segmentation faults/crashes in Uvicorn
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+# Lazy PyTorch thread limit set without importing heavy torch at startup
+try:
+    if "torch" in sys.modules:
+        sys.modules["torch"].set_num_threads(1)
+except Exception:
+    pass
+
+from backend.lifespan import lifespan
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from backend.settings import settings
+from backend.api.router import api_router
+
+
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],      # Restrict later for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+app.include_router(api_router, prefix="/api")
+
+# Serve Frontend static assets
+app.mount("/css", StaticFiles(directory="frontend/css"), name="css")
+app.mount("/js", StaticFiles(directory="frontend/js"), name="js")
+
+@app.get("/")
+async def read_root():
+    return FileResponse("frontend/index.html")
+
+@app.get("/style.css")
+async def read_style():
+    return FileResponse("frontend/style.css")
+
+@app.get("/app.js")
+async def read_app_js():
+    return FileResponse("frontend/app.js")
+
+@app.get("/performance")
+async def read_performance():
+    return FileResponse("frontend/performance.html")
+
+@app.get("/dataset")
+async def read_dataset():
+    return FileResponse("frontend/dataset.html")
+
+
+@app.get("/website")
+async def read_website():
+    return FileResponse("frontend/website.html")
+
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "healthy"
+    }
