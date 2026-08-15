@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    JSON,
 )
 
 from backend.database.base import Base
@@ -40,6 +41,11 @@ class KnowledgeAssetModel(Base):
     source_name = Column(
         String,
         nullable=False,
+    )
+
+    source_path = Column(
+        String,
+        nullable=True,
     )
 
     title = Column(
@@ -106,4 +112,9 @@ class KnowledgeAssetModel(Base):
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
+    )
+
+    metadata_json = Column(
+        JSON,
+        nullable=True,
     )

@@ -1,3 +1,4 @@
+from backend import database
 import os
 import time
 import requests
@@ -16,7 +17,31 @@ from backend.catalog.services.catalog_sync_service import (
 )
 from backend.services.embedding_service import EmbeddingService
 from backend.services.vector_store.factory import VectorStoreFactory
+from datetime import datetime
 
+from backend.database.session import SessionLocal
+
+from backend.services.document_management.document_sql_repository import (
+    DocumentSQLRepository,
+)
+from backend.services.document_management.chunk_sql_repository import (
+    ChunkSQLRepository,
+)
+
+from backend.services.ingestion_history.ingestion_history_sql_repository import (
+    IngestionHistorySQLRepository,
+)
+
+from backend.schemas.knowledge.document_schema import (
+    DocumentSchema,
+)
+from backend.schemas.knowledge.chunk_schema import (
+    ChunkSchema,
+)
+
+from backend.database.models.ingestion_history import (
+    IngestionHistoryModel,
+)
 
 class IngestionService:
     """
@@ -83,6 +108,29 @@ class IngestionService:
             file.content_type or "text/plain",
             str(file_path),
         )
+
+        # Save document metadata into PostgreSQL
+        db = SessionLocal()
+
+        try:
+            repository = DocumentSQLRepository(db)
+
+            repository.create(
+                DocumentSchema(
+                    document_id=doc_id,
+                    title=file_path.name,
+                    source_type="local_file",
+                    source_name=file_path.name,
+                    metadata={
+                        "file_path": str(file_path),
+                        "chunk_count": len(chunks),
+                    },
+                    content=text,
+                    created_at=datetime.utcnow(),
+                )
+            )   
+        finally:
+            db.close()
 
         # -----------------------------
         # Synchronize Knowledge Catalog
@@ -188,7 +236,104 @@ class IngestionService:
         file_size = os.path.getsize(file_path)
         size_str = cls._format_size(file_size)
         memory.add_document(doc_id, file_path.name, size_str, "text/plain", str(file_path))
+        print("STEP-1 REACHED POSTGRES SECTION")
 
+        # --------------------------------------------------
+        # Persist document + chunks to PostgreSQL
+        # --------------------------------------------------
+        db = SessionLocal()
+        print("STEP-2 SESSION CREATED")
+        try:
+            print("STEP-3 CREATING DOCUMENT REPO")
+            doc_repo = DocumentSQLRepository(db)
+            print("STEP-4 SAVING DOCUMENT")
+            doc_repo.create(
+                DocumentSchema(
+                    document_id=doc_id,
+                    title=file_path.name,
+                    source_type="local_file",
+                    source_name=file_path.name,
+                    metadata={
+                        "file_path": str(file_path),
+                        "chunk_count": len(chunks),
+                    },
+                    content=text,
+                    created_at=datetime.utcnow(),
+                )
+            )
+            print("STEP-5 DOCUMENT SAVED")
+            print("STEP-6 CREATING CHUNK REPO")
+            chunk_repo = ChunkSQLRepository(db)
+            print("STEP-7 SAVING CHUNKS")
+            chunk_repo.create_many(
+                [
+                    ChunkSchema(
+                        chunk_id=ids[i],
+                        document_id=doc_id,
+                        chunk_index=i,
+                        content=chunks[i],
+                        metadata=metadatas[i],
+                        created_at=datetime.utcnow(),
+                    )
+                    for i in range(len(chunks))
+                ]
+            )
+            print("STEP-8 CHUNKS SAVED")
+
+            db.add(
+                IngestionHistoryModel(
+                    document_id=doc_id,
+                    action="INGEST",
+                    source_type="local_file",
+                    source_name=file_path.name,
+                    status="SUCCESS",
+                    details_json={
+                        "chunk_count": len(chunks),
+                        "file_path": str(file_path),
+                    },
+                )
+            )
+
+            db.commit()
+
+            history_repo = IngestionHistorySQLRepository(db)
+
+            history_repo.create(
+                document_id=doc_id,
+                asset_id=None,
+                action="INGEST",
+                source_type="local_file",
+                source_name=file_path.name,
+                status="SUCCESS",
+                details_json={
+                    "file_path": str(file_path),
+                    "chunk_count": len(chunks),
+                },
+            )
+            print("STEP-9 HISTORY SAVED")
+
+        except Exception as e:
+            print("POSTGRES ERROR:", str(e))
+            history_repo = IngestionHistorySQLRepository(db)
+            history_repo.create(
+                document_id=doc_id,
+                asset_id=None,
+                action="INGEST",
+                source_type="local_file",
+                source_name=file_path.name,
+                status="FAILED",
+                details_json={
+                    "error": str(e),
+                    "file_path": str(file_path),
+                },
+            )
+            raise
+
+        finally:
+            print("STEP-9 DB CLOSED")
+            db.close()
+
+        print("STEP-10 SYNCING CATALOG")
         CatalogSyncService().sync_document(
             doc_id=doc_id,
             source_name=file_path.name,

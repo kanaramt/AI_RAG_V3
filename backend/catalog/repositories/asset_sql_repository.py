@@ -31,6 +31,7 @@ class AssetSQLRepository:
             document_id=asset.document_id,
             source_type=asset.source_type.value,
             source_name=asset.source_name,
+            source_path=asset.source_path,
             title=asset.title,
             owner=asset.owner,
             department=asset.department,
@@ -39,6 +40,7 @@ class AssetSQLRepository:
             chunk_count=asset.chunk_count,
             embedding_model=asset.embedding_model,
             vector_store=asset.vector_store,
+            metadata_json=asset.metadata,
             status=asset.status.value,
             version=asset.version,
             health_score=asset.health_score,
@@ -120,9 +122,11 @@ class AssetSQLRepository:
             )
 
         model.document_id = asset.document_id
+        model.source_path = asset.source_path
         model.chunk_count = asset.chunk_count
         model.embedding_model = asset.embedding_model
         model.vector_store = asset.vector_store
+        model.metadata_json = asset.metadata
         model.status = asset.status.value
         model.version = asset.version
         model.health_score = asset.health_score
@@ -173,6 +177,7 @@ class AssetSQLRepository:
             document_id=model.document_id,
             source_type=SourceType(model.source_type),
             source_name=model.source_name,
+            source_path=model.source_path,
             title=model.title,
             owner=model.owner,
             department=model.department,
@@ -183,6 +188,7 @@ class AssetSQLRepository:
             chunk_count=model.chunk_count,
             embedding_model=model.embedding_model,
             vector_store=model.vector_store,
+            metadata=model.metadata_json or {},
             status=AssetStatus(model.status),
             version=model.version,
             health_score=model.health_score,

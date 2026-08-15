@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -48,6 +48,8 @@ class KnowledgeAsset(BaseModel):
 
     source_name: str = ""
 
+    source_path: str = ""
+
     title: str = ""
 
     owner: str = ""
@@ -65,6 +67,8 @@ class KnowledgeAsset(BaseModel):
     embedding_model: str = ""
 
     vector_store: str = ""
+
+    metadata: dict[str, Any] = {}
 
     status: AssetStatus = AssetStatus.DRAFT
 

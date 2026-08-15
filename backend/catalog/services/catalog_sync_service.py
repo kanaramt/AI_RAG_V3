@@ -61,6 +61,7 @@ class CatalogSyncService:
                 )
 
             asset.document_id = doc_id
+            asset.source_path = source_path
             asset.chunk_count = chunk_count
             asset.embedding_model = embedding_model
             asset.vector_store = vector_store

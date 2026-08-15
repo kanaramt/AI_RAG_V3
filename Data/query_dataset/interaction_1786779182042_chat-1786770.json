@@ -1,0 +1,33 @@
+{
+  "interaction_id": "interaction_1786779182042_chat-1786770",
+  "query": "how to create dimension in hypergene ?",
+  "timestamp": "2026-08-15T13:03:02.042433",
+  "conversation_id": "chat-1786770180016-3a074b",
+  "retrieved_chunk_ids": [
+    "4bb9a57c-dcff-40ca-8e71-c5ceac9536df",
+    "d2a85e7a-531a-413b-ba04-65fec9e286bd",
+    "b6182147-46b4-4286-9f16-8d48ff54e6e8"
+  ],
+  "retrieved_chunk_text": [
+    " to \nroot \n└── Hypergene-integration \n└── Dimensionsintegration \n└── (SALES) Country \nTab \nDimensionintegration \nSet \ndim: sales_dim_country \ndbname: ...",
+    " to \nroot \n└── Hypergene-integration \n└── Dimensionsintegration \n└── (SALES) Country \nTab \nDimensionintegration \nSet \ndim: sales_dim_country \ndbname: ...",
+    " to \nroot \n└── Hypergene-integration \n└── Dimensionsintegration \n└── (SALES) Country \nTab \nDimensionintegration \nSet \ndim: sales_dim_country \ndbname: ..."
+  ],
+  "source_documents": [
+    "DimensionAndFactIntegraton.pdf"
+  ],
+  "llm_response": "### Executive Briefing\nTo create a dimension in Hypergene, you need to define the dimension parameters, configure its levels and data collection properties, and execute the integration stored procedure.\n\n### Step-by-Step Guide to Creating a Dimension in Hypergene\n\n1. **Define Dimension Name and Source Table**:\n   * `dim: sales_dim_country`\n   * `dbname: [sales_system].[dbo].[stage_dim_country]`\n\n2. **Create the All Level**:\n   * `Title: All`\n   * `Key: all`\n\n3. **Configure the All Group**:\n   * `al_name: All`\n\n4. **Create the Country Node**:\n   * `Title: Country`\n\n5. **Configure Data Collection for Country**:\n   * `source_key: country`\n   * `title_dbname: country`\n   * `brief_dbname: country`\n   * `alias_dbname: country`\n\n6. **Run the Integration**:\n   * Execute `dbo.sp_eos_Integration` with the following parameters:\n     * `@dimensions_insert = 1`\n     * `@create_dimensions = 1` *(Note: Only use this when creating the dimension for the first time)*\n     * `@set_id = '$38886'` *(as applicable from setup contexts)*\n\n---\n\n### Alternative / Administrative UI Method\nAlternatively, dimensions can be set up via the administrative interface:\n* Go to the **Dimensions** tab in the **Admin** section.\n* Click **New Dimension** and fill out the required information: **Dimension Name**, **Dimension Type** (e.g., Date, Text, Number), and **Description**.\n* Set up **Dimension Properties** (Unique Identifier, Data Type, Default Value).\n* Click **Save** to confirm changes.",
+  "retrieval_score": 0.9874,
+  "feedback": "positive",
+  "metadata": {
+    "model": "gemini-2.5-flash",
+    "metrics": {
+      "correctness": 100,
+      "faithfulness": 100,
+      "groundedness": 100,
+      "confidence": 100,
+      "time_taken_s": 675.27,
+      "token_cost": "~$0.0001"
+    }
+  }
+}

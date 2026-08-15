@@ -31,6 +31,19 @@ from backend.api.routes.search import router as search_router
 from backend.api.routes.settings import router as settings_router
 from backend.api.routes.dataset import router as dataset_router
 from backend.api.routes.website_ingestion import router as website_router
+from backend.api.routes.document_export import (
+    router as export_router,
+)
+from backend.api.routes.ingestion_history import (
+    router as ingestion_history_router,
+)
+
+from backend.api.routes.document_catalog import (
+    router as document_catalog_router,
+)
+from backend.api.routes.chunk_catalog import (
+    router as chunk_catalog_router,
+)
 
 api_router = APIRouter()
 
@@ -137,4 +150,20 @@ api_router.include_router(
 
 api_router.include_router(
     catalog_router,
+)
+
+api_router.include_router(
+    export_router
+)
+
+api_router.include_router(
+    ingestion_history_router,
+)
+
+api_router.include_router(
+    document_catalog_router,
+)
+
+api_router.include_router(
+    chunk_catalog_router,
 )

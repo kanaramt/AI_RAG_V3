@@ -40,7 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 app.include_router(api_router, prefix="/api")
@@ -51,7 +51,7 @@ app.mount("/js", StaticFiles(directory="frontend/js"), name="js")
 
 @app.get("/")
 async def read_root():
-    return FileResponse("frontend/index.html")
+    return FileResponse("frontend/index.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 @app.get("/style.css")
 async def read_style():
@@ -63,16 +63,16 @@ async def read_app_js():
 
 @app.get("/performance")
 async def read_performance():
-    return FileResponse("frontend/performance.html")
+    return FileResponse("frontend/performance.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 @app.get("/dataset")
 async def read_dataset():
-    return FileResponse("frontend/dataset.html")
+    return FileResponse("frontend/dataset.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 
 @app.get("/website")
 async def read_website():
-    return FileResponse("frontend/website.html")
+    return FileResponse("frontend/website.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 
 @app.get("/health")
